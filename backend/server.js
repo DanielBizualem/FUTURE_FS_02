@@ -4,6 +4,7 @@ import dotenv from 'dotenv'
 import morgan from 'morgan';
 import mongoose from 'mongoose';
 import { connectDB } from './src/config/db.js';
+import adminRouter from './src/routes/adminRoute.js';
 
 
 dotenv.config();
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 4000
 
 app.use(cors())
 app.use(express.json())
+app.use('/admin',adminRouter)
 
 connectDB()
 
