@@ -13,7 +13,10 @@ const app = express()
 app.use(cookieParser())
 const PORT = process.env.PORT || 4000
 
-app.use(cors())
+app.use(cors({
+  origin: (origin, callback) => callback(null, true), // Allows any origin
+  credentials: true
+}))
 app.use(express.json())
 app.use('/admin',adminRouter)
 

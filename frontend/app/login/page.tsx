@@ -1,20 +1,63 @@
 "use client"
 import React, { useState } from "react";
+import summeryApi from "../../common/SummeryApi.js"
+import Axios from '../../utils/Axios.js'
+import { useRouter } from "next/navigation";
+
+type LoginState = {
+    email: string;
+    password: string;
+  };
+  
+  const initialState: LoginState = {
+    email: "",
+    password: "",
+  };
 
 export default function Login() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const router = useRouter();
     const [error, setError] = useState("");
+    const [state, setState] = useState<LoginState>(initialState);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setState((prev) => ({ ...prev, [name]: value }));
+        
+      };
+    
+    const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
-        if (!email || !password) {
+        if (!state.email || !state.password) {
             setError("Please enter both email and password.");
             return;
         }
-        setError("");
-        // TODO: Add authentication logic here
-        alert(`Logged in as ${email}`);
+          try {
+            
+            const response = await Axios({
+              ...summeryApi.login,
+              data: state,
+            });
+            
+            if (response?.data?.success) {
+              localStorage.setItem("accessToken", response.data.data.accessToken);
+              localStorage.setItem("refreshToken", response.data.data.refreshToken);
+              router.push("/dashboard");
+              router.refresh();
+              return;
+            }
+          } catch (error: unknown) {
+            const message =
+              typeof error === "object" &&
+              error !== null &&
+              "response" in error &&
+              typeof (error as { response?: { data?: { message?: string } } })
+                .response?.data?.message === "string"
+                ? (error as { response?: { data?: { message?: string } } }).response!
+                    .data!.message!
+                : "Unable to sign in right now. Check your credentials and try again.";
+      
+            setError(message)
+          }
     };
 
     return (
@@ -51,8 +94,9 @@ export default function Login() {
                         Email
                         <input
                             type="email"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
+                            name="email"
+                            value={state.email}
+                            onChange={onChangeHandler}
                             style={{
                                 width: "100%",
                                 padding: "0.75rem",
@@ -76,8 +120,9 @@ export default function Login() {
                         Password
                         <input
                             type="password"
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            name="password"
+                            value={state.password}
+                            onChange={onChangeHandler}
                             style={{
                                 width: "100%",
                                 padding: "0.75rem",
