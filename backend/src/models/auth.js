@@ -8,6 +8,4 @@ const authSchema = new mongoose.Schema({
 })
 
 
-
-
 export default mongoose.model('Auth',authSchema)

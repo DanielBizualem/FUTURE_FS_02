@@ -5,10 +5,12 @@ import morgan from 'morgan';
 import mongoose from 'mongoose';
 import { connectDB } from './src/config/db.js';
 import adminRouter from './src/routes/adminRoute.js';
+import cookieParser from 'cookie-parser'
 
 
 dotenv.config();
 const app = express()
+app.use(cookieParser())
 const PORT = process.env.PORT || 4000
 
 app.use(cors())
