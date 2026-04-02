@@ -4,6 +4,10 @@ const summeryApi = {
     login:{
         url:"/admin/login",
         method:"post"
+    },
+    addLead:{
+        url:"/admin/addLeads",
+        method:"post"
     }
 }
 

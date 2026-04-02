@@ -1,29 +1,42 @@
-import { leadsDetail, newLeads } from "../services/leadsService.js"
+import { leadsDetail, createLeadService } from "../services/leadsService.js"
 
 
-const addsNewLeads = async(req,res)=>{
-    try{
-        const {name,email,phone} = req.body
+const addsNewLeads = async (req, res) => {
+    try {
+        // NOTE: Destructure 'name' because that is what your frontend 'state' uses
+        const { name, email, phone, source } = req.body;
 
-        if(!name||!email||!phone){
-            return {
-                success:false,
-                message:"Provide your name, email and phone correctly"
-            }
+        // 1. Check for missing fields (Use res.status instead of return object)
+        if (!name || !email || !phone) {
+            return res.status(400).json({
+                success: false,
+                error: true,
+                message: "Provide name, email, and phone correctly"
+            });
         }
 
-        const result = await newLeads(name,email,phone)
+        // 2. Call your logic function
+        // Pass 'name' as the 'fullname' argument
+        const result = await createLeadService(name, email, phone, source || "Website");
+
+        // 3. Send Success Response
         return res.status(200).json({
-            success:result.success,
-            message:result.message
-          })
-    }catch(error){
-        return {
-            success:false,
-            message:error.message
-        }
+            message: "Lead created successfully",
+            success: true,
+            error: false,
+            data: result
+        });
+
+    } catch (error) {
+        // 4. Handle Errors (Crucial so frontend doesn't hang on crash)
+        console.error("Controller Error:", error);
+        return res.status(500).json({
+            success: false,
+            error: true,
+            message: error.message || "Internal Server Error"
+        });
     }
-}
+};
 const leadsList = async(req,res)=>{
     try {
         const result = await leadsDetail();

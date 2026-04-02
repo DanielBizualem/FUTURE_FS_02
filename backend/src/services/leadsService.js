@@ -1,24 +1,28 @@
 import leads from '../models/leads.js'
 
 
-export const newLeads = async(name,email,phone)=>{
-    try{
-        const newLeads = await leads.create({
-            name,email,phone
-        })
-
-        const save = await newLeads.save()
+export const createLeadService = async (fullname, email, phone, source) => {
+    try {
+        // .create() handles both 'new' and '.save()' in one go
+        const result = await leads.create({
+            fullname,
+            email,
+            phone,
+            source: source || "Website" // Fallback if source is missing
+        });
 
         return {
-            success:true,
-            message:'add new leads successfully',
-        }
+            success: true,
+            message: 'Lead added successfully',
+            data: result // Returning the data is helpful for the frontend
+        };
 
-    }catch(error){
+    } catch (error) {
+        console.error("Service Error:", error);
         return {
-            success:false,
-            message:error.message
-        }
+            success: false,
+            message: error.message
+        };
     }
 }
 

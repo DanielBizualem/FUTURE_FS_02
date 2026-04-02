@@ -82,6 +82,14 @@ export default function Login() {
                     gap: "1.2rem"
                 }}
             >
+                <h1 style={{
+                    textAlign: "center",
+                    margin: 0,
+                    color: "#2d3748",
+                    fontWeight: 700,
+                    letterSpacing: 1
+                }}>Client Lead Management</h1>
+
                 <h2 style={{
                     textAlign: "center",
                     margin: 0,

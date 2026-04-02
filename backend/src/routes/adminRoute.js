@@ -8,7 +8,7 @@ const adminRouter = express.Router()
 
 adminRouter.post('/login',loginController)
 adminRouter.post('/register',createAdminController)
-adminRouter.post('/addLeads',addsNewLeads)
+adminRouter.post('/addLeads',auth,addsNewLeads)
 adminRouter.get('/leadsDetail',auth,leadsList)
 
 export default adminRouter
