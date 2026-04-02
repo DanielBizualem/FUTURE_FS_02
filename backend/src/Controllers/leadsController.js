@@ -4,10 +4,10 @@ import { leadsDetail, createLeadService } from "../services/leadsService.js"
 const addsNewLeads = async (req, res) => {
     try {
         // NOTE: Destructure 'name' because that is what your frontend 'state' uses
-        const { name, email, phone, source } = req.body;
+        const { fullname, email, phone, source } = req.body;
 
         // 1. Check for missing fields (Use res.status instead of return object)
-        if (!name || !email || !phone) {
+        if (!fullname || !email || !phone) {
             return res.status(400).json({
                 success: false,
                 error: true,
@@ -17,7 +17,7 @@ const addsNewLeads = async (req, res) => {
 
         // 2. Call your logic function
         // Pass 'name' as the 'fullname' argument
-        const result = await createLeadService(name, email, phone, source || "Website");
+        const result = await createLeadService(fullname, email, phone, source || "Website");
 
         // 3. Send Success Response
         return res.status(200).json({

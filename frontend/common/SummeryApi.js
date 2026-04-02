@@ -8,6 +8,10 @@ const summeryApi = {
     addLead:{
         url:"/admin/addLeads",
         method:"post"
+    },
+    leadsDetail:{
+        url:"/admin/leadsDetail",
+        method:"get"
     }
 }
 

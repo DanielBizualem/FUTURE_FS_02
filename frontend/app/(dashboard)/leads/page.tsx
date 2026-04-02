@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import summeryApi from "../../../common/SummeryApi.js"
 import { Search,X,ShieldCheck, Phone, Mail, Filter,Plus,Trash2 } from "lucide-react";
 import Axios from "@/utils/Axios";
@@ -13,17 +13,17 @@ interface Note {
 }
 
 interface Lead {
-  id: number;
-  name: string;
+  _id: number;
+  fullname: string;
   email: string;
   phone: string;
   source: string;
   status: "New" | "Contacted" | "Converted" | "Lost";
-  created: string;
+  createdAt: string;
   notes: Note[];
 }
 type LoginState = {
-  name: string;
+  fullname: string;
   email: string;
   phone:string
   password: string;
@@ -32,7 +32,7 @@ type LoginState = {
 };
 
 const initialState: LoginState = {
-  name:"",
+  fullname:"",
   email: "",
   phone:"",
   password: "",
@@ -40,17 +40,8 @@ const initialState: LoginState = {
   status:""
 };
 
-
-// --- Mock Data ---
-const INITIAL_LEADS: Lead[] = [
-  { id: 1, name: "Copi pice", email: "copi@example.com", phone: "09112233", source: "Facebook", status: "New", created: "2026-03-01", notes: [] },
-  { id: 2, name: "Aquusty", email: "aqua@example.com", phone: "09124455", source: "Referral", status: "Contacted", created: "2026-03-02", notes: [] },
-  { id: 3, name: "Aroties", email: "aro@example.com", phone: "09136677", source: "Website", status: "Converted", created: "2026-03-01", notes: [] },
-  { id: 4, name: "DeduMr", email: "dedu@example.com", phone: "09148899", source: "Google", status: "New", created: "2026-03-03", notes: [] },
-];
-
 // --- New Lead Modal ---
-const AddLeadModal = ({ onClose, onAdd }: { onClose: () => void, onAdd: (lead: Omit<Lead, 'id' | 'created' | 'notes'>) => void }) => {
+const AddLeadModal = ({ onClose, onAdd }: { onClose: () => void, onAdd: (lead: { fullname: string; email: string; phone: string; source: string; status: Lead['status'] }) => void }) => {
   const [state, setState] = useState<LoginState>(initialState);
   const [isSuccess, setIsSuccess] = useState(false); // Track success state
 
@@ -67,12 +58,11 @@ const AddLeadModal = ({ onClose, onAdd }: { onClose: () => void, onAdd: (lead: O
         ...summeryApi.addLead,
         data: state
       });
-      console.log(response.data.data)
+      
       if (response?.data?.success) {
         setIsSuccess(true); // Switch to success view
-        
         onAdd({
-          name: state.name,
+          fullname: state.fullname,
           email: state.email,
           phone: state.phone,
           source: state.source || "Website",
@@ -109,8 +99,8 @@ const AddLeadModal = ({ onClose, onAdd }: { onClose: () => void, onAdd: (lead: O
                   <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Full Name</label>
                   <input 
                     required
-                    name="name"
-                    value={state.name}
+                    name="fullname"
+                    value={state.fullname}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all"
                     placeholder="John Doe"
                     onChange={onChangeHandler}
@@ -174,7 +164,7 @@ const AddLeadModal = ({ onClose, onAdd }: { onClose: () => void, onAdd: (lead: O
               </div>
               <h2 className="text-2xl font-black text-slate-800">Successfully Created!</h2>
               <p className="text-slate-500 mt-2 font-medium">
-                The lead info for <span className="text-indigo-600 font-bold">{state.name}</span> has been saved.
+                The lead info for <span className="text-indigo-600 font-bold">{state.fullname}</span> has been saved.
               </p>
               <div className="mt-8 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
@@ -272,7 +262,7 @@ const LeadEditModal = ({ lead, onClose, onUpdate, onAddNote }: {
 
 // --- Main Page Component ---
 export default function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>(INITIAL_LEADS);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Statuses");
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -281,18 +271,59 @@ export default function LeadsPage() {
 
   // Helpers
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+    // Check if dateStr exists, otherwise return "N/A"
+    if (!dateStr) return "N/A"; 
+    
+    const date = new Date(dateStr);
+    
+    // Check if the date is actually valid
+    if (isNaN(date.getTime())) return "N/A";
+  
+    return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
       year: "numeric",
     });
   };
 
+  //getting leads from the database
+  const leadsDetail = async()=>{
+    try{
+      const response = await Axios({
+        ...summeryApi.leadsDetail
+      })
+      if(response.data.success){
+        const sortedLeads = response.data.data.sort((a, b) => {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+        setLeads(sortedLeads)
+      }
+    }catch(error){
+      console.log(error)
+    }
+  }
+  useEffect(()=>{
+    leadsDetail()
+  },[])
+
   const filteredLeads = useMemo(() => {
+    // Safety check: ensure leads is an array
+    if (!Array.isArray(leads)) return [];
+
     return leads.filter((lead) => {
-      const matchesSearch = lead.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            lead.email.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter === "All Statuses" || lead.status === statusFilter;
+      // 1. Use optional chaining and fallback to empty string ""
+      // 2. IMPORTANT: Check if your backend uses 'fullname' or 'name'
+      const name = lead.fullname || ""; 
+      const email = lead.email || "";
+
+      const matchesSearch = 
+        name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        email.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesStatus = 
+        statusFilter === "All Statuses" || 
+        lead.status === statusFilter;
+
       return matchesSearch && matchesStatus;
     });
   }, [leads, searchQuery, statusFilter]);
@@ -302,11 +333,11 @@ export default function LeadsPage() {
     if (selectedIds.length === filteredLeads.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filteredLeads.map(l => l.id));
+      setSelectedIds(filteredLeads.map(l => l._id));
     }
   };
 
-  const toggleSelectOne = (id: number) => {
+  const toggleSelectOne = (id: any) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
@@ -319,11 +350,11 @@ export default function LeadsPage() {
     }
   };
 
-  const handleAddLead = (newLeadData: Omit<Lead, 'id' | 'created' | 'notes'>) => {
+  const handleAddLead = (newLeadData: Omit<Lead, '_id' | 'createdAt' | 'notes'>) => {
     const newLead: Lead = {
       ...newLeadData,
-      id: Date.now(), 
-      created: new Date().toISOString().split('T')[0],
+      _id: Date.now(), 
+      createdAt: new Date().toISOString().split('T')[0],
       notes: []
     };
     setLeads([newLead, ...leads]);
@@ -423,7 +454,7 @@ export default function LeadsPage() {
           <tbody className="divide-y divide-slate-50">
             {filteredLeads.map((lead) => (
               <tr 
-                key={lead.id} 
+                key={lead._id} 
                 onClick={() => setSelectedLead(lead)}
                 className={`group hover:bg-slate-50/50 cursor-pointer transition-all ${selectedIds.includes(lead.id) ? 'bg-indigo-50/30' : ''}`}
               >
@@ -431,11 +462,11 @@ export default function LeadsPage() {
                     <input 
                         type="checkbox" 
                         className="rounded-md w-4 h-4 accent-indigo-600 cursor-pointer"
-                        checked={selectedIds.includes(lead.id)}
-                        onChange={() => toggleSelectOne(lead.id)}
+                        checked={selectedIds.includes(lead._id)}
+                        onChange={() => toggleSelectOne(lead._id)}
                     />
                 </td>
-                <td className="px-8 py-6 font-bold text-slate-800">{lead.name}</td>
+                <td className="px-8 py-6 font-bold text-slate-800">{lead.fullname}</td>
                 <td className="px-8 py-6 text-sm text-slate-600">{lead.email}</td>
                 <td className="px-8 py-6 text-sm text-slate-500">{lead.source}</td>
                 <td className="px-8 py-6">
@@ -450,7 +481,7 @@ export default function LeadsPage() {
                   </div>
                 </td>
                 <td className="px-8 py-6 text-sm font-medium text-slate-400 text-right">
-                  {formatDate(lead.created)}
+                  {formatDate(lead.createdAt)}
                 </td>
               </tr>
             ))}
