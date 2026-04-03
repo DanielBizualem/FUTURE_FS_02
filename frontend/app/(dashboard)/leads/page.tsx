@@ -190,7 +190,7 @@ const LeadEditModal = ({ lead, onClose, onUpdate, onAddNote }: {
 
   const handleSave = () => {
     if (!noteInput.trim()) return;
-    onAddNote(lead.id, noteInput);
+    onAddNote(lead._id, noteInput);
     setNoteInput("");
   };
 
@@ -345,7 +345,7 @@ export default function LeadsPage() {
 
   const handleDelete = () => {
     if (confirm(`Are you sure you want to delete ${selectedIds.length} lead(s)?`)) {
-      setLeads(prev => prev.filter(lead => !selectedIds.includes(lead.id)));
+      setLeads(prev => prev.filter(lead => !selectedIds.includes(lead._id)));
       setSelectedIds([]);
     }
   };
@@ -361,8 +361,8 @@ export default function LeadsPage() {
   };
 
   const handleUpdateStatus = (id: number, newStatus: Lead['status']) => {
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, status: newStatus } : l));
-    if (selectedLead?.id === id) setSelectedLead(prev => prev ? { ...prev, status: newStatus } : null);
+    setLeads(prev => prev.map(l => l._id === id ? { ...l, status: newStatus } : l));
+    if (selectedLead?._id === id) setSelectedLead(prev => prev ? { ...prev, status: newStatus } : null);
   };
 
   const handleAddNote = (id: number, text: string) => {
@@ -371,8 +371,8 @@ export default function LeadsPage() {
       text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    setLeads(prev => prev.map(l => l.id === id ? { ...l, notes: [newNote, ...l.notes] } : l));
-    if (selectedLead?.id === id) setSelectedLead(prev => prev ? { ...prev, notes: [newNote, ...prev.notes] } : null);
+    setLeads(prev => prev.map(l => l._id === id ? { ...l, notes: [newNote, ...l.notes] } : l));
+    if (selectedLead?._id === id) setSelectedLead(prev => prev ? { ...prev, notes: [newNote, ...prev.notes] } : null);
   };
 
   return (

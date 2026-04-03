@@ -43,3 +43,25 @@ export const leadsDetail = async()=>{
 
 }
 
+export const removeLeads = async(id)=>{
+    try{
+        
+        const deletedLead = await leads.deleteMany({
+            _id: { $in: Array.isArray(ids) ? ids : [ids] }
+        })
+        if (!deletedLead) {
+            return {
+                success: false,
+                message: "Lead not found"
+            };
+        }
+        return {
+            success: true,
+            message: `${deletedLead.deletedCount} lead(s) removed successfully`,
+            deletedCount: result.deletedCount
+        };
+    }catch(error){
+        throw error
+    }
+}
+

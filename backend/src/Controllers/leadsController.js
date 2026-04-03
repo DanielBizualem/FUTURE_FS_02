@@ -1,4 +1,4 @@
-import { leadsDetail, createLeadService } from "../services/leadsService.js"
+import { leadsDetail, createLeadService, removeLeads } from "../services/leadsService.js"
 
 
 const addsNewLeads = async (req, res) => {
@@ -59,4 +59,27 @@ const leadsList = async(req,res)=>{
         });
     }
 }
-export {addsNewLeads,leadsList}
+
+const removeLead = async(req,res)=>{
+    try{
+        const { id } = req.body
+        if (!id || (Array.isArray(id) && id.length === 0)) {
+            return res.status(400).json({
+                success: false,
+                message: "No Lead ID provided"
+            });
+        }
+        const response = await removeLeads(id);
+        return res.json({
+            success:true,
+            message:"Lead removed successfully"
+        })
+
+    }catch(error){
+       return res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        });
+    }
+}
+export {addsNewLeads,leadsList,removeLead}

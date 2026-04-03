@@ -12,6 +12,10 @@ const summeryApi = {
     leadsDetail:{
         url:"/admin/leadsDetail",
         method:"get"
+    },
+    removeLead:{
+        url:"/admin/removedLead",
+        method:"post"
     }
 }
 
