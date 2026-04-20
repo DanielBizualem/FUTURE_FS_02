@@ -5,7 +5,7 @@ interface HeaderProps {
   onAddLead: () => void; 
 }
 
-export default function Header({ onAddLead }: HeaderProps) {
+export default function Header() {
   return (
     <header className="h-16 bg-[#0f172a] flex items-center justify-between px-8 text-white shadow-lg">
       <div className="relative w-96 group">

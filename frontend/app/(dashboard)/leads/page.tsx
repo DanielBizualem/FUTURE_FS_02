@@ -233,7 +233,7 @@ const LeadEditModal = ({ lead, onClose, onUpdate, onAddNote }: {
               {(["New", "Contacted", "Converted", "Lost"] as const).map((s) => (
                 <button
                   key={s}
-                  onClick={() => onUpdate(lead.id, s)}
+                  onClick={() => onUpdate(lead._id, s)}
                   className={`flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all duration-200 uppercase tracking-wider ${lead.status === s ? "bg-white text-indigo-600 shadow-sm scale-[1.02]" : "text-slate-400 hover:text-slate-600"}`}
                 >
                   {s}
@@ -293,7 +293,7 @@ export default function LeadsPage() {
         ...summeryApi.leadsDetail
       })
       if(response.data.success){
-        const sortedLeads = response.data.data.sort((a, b) => {
+        const sortedLeads = response.data.data.sort((a:Lead, b:Lead) => {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         setLeads(sortedLeads)
@@ -302,6 +302,7 @@ export default function LeadsPage() {
       console.log(error)
     }
   }
+  
   useEffect(()=>{
     leadsDetail()
   },[])
@@ -456,7 +457,7 @@ export default function LeadsPage() {
               <tr 
                 key={lead._id} 
                 onClick={() => setSelectedLead(lead)}
-                className={`group hover:bg-slate-50/50 cursor-pointer transition-all ${selectedIds.includes(lead.id) ? 'bg-indigo-50/30' : ''}`}
+                className={`group hover:bg-slate-50/50 cursor-pointer transition-all ${selectedIds.includes(lead._id) ? 'bg-indigo-50/30' : ''}`}
               >
                 <td className="px-8 py-6" onClick={(e) => e.stopPropagation()}>
                     <input 
