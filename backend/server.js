@@ -14,9 +14,13 @@ app.use(cookieParser())
 const PORT = process.env.PORT || 4000
 
 app.use(cors({
-  origin: (origin, callback) => callback(null, true), // Allows any origin
-  credentials: true
+  origin: [
+    "http://localhost:3000", 
+    "https://clientleadmanagement.vercel.app"
+  ], // Explicitly allow your frontend URL
+    credentials: true                // Allow cookies/headers to be sent
 }))
+
 app.use(express.json())
 app.use('/admin',adminRouter)
 
