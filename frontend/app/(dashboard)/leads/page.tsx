@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import summeryApi from "../../../common/SummeryApi.js"
 import { Search,X,ShieldCheck, Phone, Mail, Filter,Plus,Trash2 } from "lucide-react";
 import Axios from "@/utils/Axios";
+import { DeleteModal } from "@/components/deleteModal";
 
 // --- Types ---
 interface Note {
@@ -268,6 +269,7 @@ export default function LeadsPage() {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Helpers
   const formatDate = (dateStr: string) => {
@@ -344,10 +346,29 @@ export default function LeadsPage() {
     );
   };
 
-  const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete ${selectedIds.length} lead(s)?`)) {
-      setLeads(prev => prev.filter(lead => !selectedIds.includes(lead._id)));
-      setSelectedIds([]);
+  const confirmDelete = async () => {
+    
+    try {
+      console.log("Sending IDs for deletion:", selectedIds);
+      
+      const response = await Axios({
+        ...summeryApi.removeLead,
+        data: { id: selectedIds } 
+      });
+  
+      if (response.data.success) {
+        // 2. Use lead._id to match the database format
+        setLeads(prev => prev.filter(lead => !selectedIds.includes(lead._id)));
+        
+        // 3. Clear selection and close modal
+        setSelectedIds([]);
+        setIsDeleteModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Delete Error:", error);
+      // If the server fails (500 error), tell the user why
+      alert("Server Error: One of the selected IDs is invalid.");
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -398,11 +419,11 @@ export default function LeadsPage() {
 
             {selectedIds.length > 0 ? (
                 <button 
-                    onClick={handleDelete}
-                    className="flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-2xl font-bold shadow-xl shadow-rose-100 transition-all animate-in slide-in-from-right-4"
-                >
-                    <Trash2 size={20} /> Delete ({selectedIds.length})
-                </button>
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-2xl font-bold shadow-xl shadow-rose-100 transition-all animate-in slide-in-from-right-4"
+              >
+                <Trash2 size={20} /> Delete ({selectedIds.length})
+              </button>
             ) : (
                 <button 
                     onClick={() => setIsAddModalOpen(true)}
@@ -505,6 +526,13 @@ export default function LeadsPage() {
             onAdd={handleAddLead} 
         />
       )}
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        count={selectedIds.length}
+      />
     </div>
   );
 }

@@ -17,7 +17,7 @@ const summeryApi = {
         method:"get"
     },
     removeLead:{
-        url:"/admin/removedLead",
+        url:"/admin/removeLead",
         method:"post"
     }
 }

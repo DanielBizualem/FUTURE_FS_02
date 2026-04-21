@@ -1,4 +1,5 @@
-import { leadsDetail, createLeadService, removeLeads } from "../services/leadsService.js"
+import { leadsDetail, createLeadService } from "../services/leadsService.js"
+import leads from "../models/leads.js";
 
 
 const addsNewLeads = async (req, res) => {
@@ -61,19 +62,24 @@ const leadsList = async(req,res)=>{
 }
 
 const removeLead = async(req,res)=>{
+    const { id: ids } = req.body
     try{
-        const { id } = req.body
-        if (!id || (Array.isArray(id) && id.length === 0)) {
+        
+        if (!ids || (Array.isArray(ids) && ids.length === 0)) {
             return res.status(400).json({
                 success: false,
                 message: "No Lead ID provided"
             });
         }
-        const response = await removeLeads(id);
+
+        const deletedLead = await leads.deleteMany({
+            _id: { $in: Array.isArray(ids) ? ids : [ids] }
+        });
+
         return res.json({
-            success:true,
-            message:"Lead removed successfully"
-        })
+            success: true,
+            message: `${deletedLead.deletedCount} leads removed`
+        });
 
     }catch(error){
        return res.status(500).json({
